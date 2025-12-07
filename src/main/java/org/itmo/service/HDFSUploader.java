@@ -1,4 +1,4 @@
-package org.itmo;
+package org.itmo.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.conf.Configuration;
@@ -8,25 +8,27 @@ import org.apache.hadoop.fs.Path;
 import java.io.File;
 import java.io.IOException;
 
+/**
+ * Объект для загрузки файлов в HDFS
+ */
 @Slf4j
 public class HDFSUploader {
 
-
     public void uploadFilesToHDFS(Configuration conf) throws IOException {
-
 
         try (FileSystem fs = FileSystem.get(conf)) {
 
-            File localDir = new File("./");
+            File localDir = new File("./input_csv");
 
-
-            File[] csvFiles = localDir.listFiles(((dir, name) -> name.toLowerCase().endsWith(".csv")));
+            File[] csvFiles = localDir.listFiles();
 
             Path pathInHDFSToCSVFiles = new Path("/input");
 
             if (!fs.exists(pathInHDFSToCSVFiles)) {
                 fs.mkdirs(pathInHDFSToCSVFiles);
-                log.info("Created HDFS directory: " + pathInHDFSToCSVFiles);
+                log.debug("Created HDFS directory: {}", pathInHDFSToCSVFiles);
+            } else {
+                log.debug("Directory already exists: {}", pathInHDFSToCSVFiles);
             }
 
             for (File csvFile : csvFiles) {
@@ -38,15 +40,16 @@ public class HDFSUploader {
                 if (!fs.exists(hdfsPath)) {
 
                     fs.copyFromLocalFile(false, true, localPath, hdfsPath);
-                    log.info("Copied HDFS file: " + hdfsPath);
-                } else {
-                    log.info("File already exists: " + hdfsPath);
-                }
+                    log.debug("Create HDFS file: {}", hdfsPath);
 
+                } else {
+                    log.debug("File already exists: {}", hdfsPath);
+                }
 
             }
 
-
         }
+
     }
+
 }

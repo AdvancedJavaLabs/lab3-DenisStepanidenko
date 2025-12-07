@@ -44,6 +44,6 @@ bin/
 .DS_Store
 
 # csv файлы
-*.csv
+input_csv/*.csv
 
 results/

@@ -1,9 +1,9 @@
-package org.itmo;
+package org.itmo.reduce;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
+import org.itmo.model.SalesWritable;
 
 import java.io.IOException;
 
@@ -20,10 +20,10 @@ public class SalesReducer extends Reducer<Text, SalesWritable, Text, SalesWritab
         double totalRevenue = 0.0;
         int totalQuantity = 0;
 
-        System.out.println("Обработка reduce значений " +  values);
+        log.debug("Обработка reduce значений {}", values);
 
 
-        for(SalesWritable val : values) {
+        for (SalesWritable val : values) {
             totalRevenue += val.getRevenue();
             totalQuantity += val.getQuantity();
 
@@ -37,7 +37,8 @@ public class SalesReducer extends Reducer<Text, SalesWritable, Text, SalesWritab
 
     @Override
     protected void setup(Reducer<Text, SalesWritable, Text, SalesWritable>.Context context) throws IOException, InterruptedException {
-        System.out.println("Mapper started with configuration: " +
-                context.getConfiguration().get("fs.defaultFS"));
+        log.debug("Mapper started with configuration: {}", context.getConfiguration().get("fs.defaultFS"));
     }
+
+
 }

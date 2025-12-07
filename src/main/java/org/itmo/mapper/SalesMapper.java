@@ -1,9 +1,10 @@
-package org.itmo;
+package org.itmo.mapper;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
+import org.itmo.model.SalesWritable;
 
 import java.io.IOException;
 
@@ -32,7 +33,7 @@ public class SalesMapper extends Mapper<LongWritable, Text, Text, SalesWritable>
 
         String line = value.toString();
 
-        System.out.println("Обработка строки в mapper: " +  line);
+        log.debug("Обработка строки в mapper: {}", line);
 
         if (line.startsWith("transaction_id") || line.trim().isEmpty()) {
             return;
@@ -56,8 +57,7 @@ public class SalesMapper extends Mapper<LongWritable, Text, Text, SalesWritable>
 
     @Override
     protected void setup(Context context) throws IOException, InterruptedException {
-        System.out.println("Mapper started with configuration: " +
-                context.getConfiguration().get("fs.defaultFS"));
+        log.debug("Mapper started with configuration: {}", context.getConfiguration().get("fs.defaultFS"));
     }
 
 }

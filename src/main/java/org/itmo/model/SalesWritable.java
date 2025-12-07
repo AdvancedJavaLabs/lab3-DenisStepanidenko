@@ -1,4 +1,4 @@
-package org.itmo;
+package org.itmo.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
