@@ -12,11 +12,7 @@ import java.io.IOException;
 public class HDFSUploader {
 
 
-    public void uploadFilesToHDFS() throws IOException {
-
-        Configuration conf = new Configuration();
-        conf.set("fs.defaultFS", "hdfs://localhost:8020");
-        conf.set("dfs.client.use.datanode.hostname", "true");
+    public void uploadFilesToHDFS(Configuration conf) throws IOException {
 
 
         try (FileSystem fs = FileSystem.get(conf)) {

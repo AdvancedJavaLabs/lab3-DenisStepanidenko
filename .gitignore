@@ -45,3 +45,5 @@ bin/
 
 # csv файлы
 *.csv
+
+results/

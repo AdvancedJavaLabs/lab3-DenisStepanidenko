@@ -45,7 +45,7 @@ public class SalesWritable implements Writable {
 
     @Override
     public String toString() {
-        return String.format("%.2f\t%d", revenue, quantity);
+        return String.format("quantity:%d, revenue:%.2f", quantity, revenue);
     }
 
 
