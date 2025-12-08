@@ -45,5 +45,3 @@ bin/
 
 # csv файлы
 input_csv/*.csv
-
-results/

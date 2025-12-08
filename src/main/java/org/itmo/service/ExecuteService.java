@@ -149,7 +149,29 @@ public class ExecuteService {
             }
         }
 
+
         File resultTimeFile = new File(new File(localDirPath.toString()), "resultTimeFie.txt");
+        Path hdfsPathToAggregationResult = new Path("/output/aggregateResult");
+
+        Path localDirPathToAggregationResult = new Path("results/csv" + numOfCsvFile + "/aggregationResult/countOfReduceNode-" + countOfReduceNode);
+        File localFilePathToAggregationResult = new File(localDirPathToAggregationResult.toString());
+
+        if(!localFilePathToAggregationResult.exists()){
+            localFilePathToAggregationResult.mkdirs();
+        }
+
+        FileStatus[] hdfsFilesAggregationResult = fileSystem.listStatus(hdfsPathToAggregationResult);
+
+        for (FileStatus fileStatus : hdfsFilesAggregationResult) {
+            if (!fileStatus.isDirectory()) {
+                Path hdfsFilePath = fileStatus.getPath();
+                String fileName = hdfsFilePath.getName();
+                Path localFilePath = new Path(localDirPathToAggregationResult, fileName);
+
+                fileSystem.copyToLocalFile(false, hdfsFilePath, localFilePath, true);
+            }
+        }
+
 
         String result = String.format("Count of reduce node = %d, time  = %.2f seconds. \n", countOfReduceNode, timeInMs / 1000.0);
         FileUtils.writeStringToFile(resultTimeFile, result, "UTF-8", true);

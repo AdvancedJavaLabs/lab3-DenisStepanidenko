@@ -51,34 +51,6 @@ public class Main {
         configuration.set("fs.defaultFS", "hdfs://localhost:8020");
         configuration.set("dfs.client.use.datanode.hostname", "true");
 
-        // КРИТИЧЕСКИ ВАЖНЫЕ ОПТИМИЗАЦИИ:
-
-        // 1. Для локального режима
-        configuration.set("mapreduce.framework.name", "local");
-        configuration.setBoolean("mapreduce.jobtracker.address", false);
-
-        // 2. Оптимизация памяти
-        configuration.set("mapreduce.map.memory.mb", "1024");
-        configuration.set("mapreduce.reduce.memory.mb", "1024");
-        configuration.set("mapreduce.map.java.opts", "-Xmx768m");
-        configuration.set("mapreduce.reduce.java.opts", "-Xmx768m");
-
-        // 3. Сжатие (ускоряет shuffle)
-        configuration.setBoolean("mapred.compress.map.output", true);
-        configuration.set("mapred.map.output.compression.codec",
-                "org.apache.hadoop.io.compress.SnappyCodec");
-
-        // 4. Параметры сортировки/слияния
-        configuration.setInt("mapreduce.task.io.sort.mb", 200);
-        configuration.setInt("mapreduce.task.io.sort.factor", 100);
-        configuration.setInt("mapreduce.reduce.shuffle.parallelcopies", 50);
-
-        // 5. Для маленьких/средних файлов
-        configuration.setBoolean("mapreduce.job.ubertask.enable", true);
-        configuration.setLong("mapreduce.input.fileinputformat.split.minsize", 1L);
-
-        // 6. Оптимизация вывода
-        configuration.setBoolean("mapreduce.output.fileoutputformat.compress", false);
 
         return configuration;
     }
