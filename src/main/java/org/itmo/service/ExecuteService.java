@@ -32,11 +32,11 @@ public class ExecuteService {
         this.fileSystem = FileSystem.get(configuration);
     }
 
-    public void execute(int numOfCsvFile, int countOfReduceNode) throws IOException, InterruptedException, ClassNotFoundException {
+    public void executeCSVFile(int numOfCsvFile, int countOfReduceNode) throws IOException, InterruptedException, ClassNotFoundException {
 
         deleteDirectories();
 
-        Job aggregate = setUpAggreateJob(numOfCsvFile, countOfReduceNode);
+        Job aggregate = setUpAggregateJobToSingleCSV(numOfCsvFile, countOfReduceNode);
 
         long startTime = System.currentTimeMillis();
 
@@ -47,7 +47,7 @@ public class ExecuteService {
 
         long endTime = System.currentTimeMillis();
 
-        downloadResultsFromHDFS(numOfCsvFile, countOfReduceNode, endTime - startTime);
+        downloadSingleResultsFromHDFS(numOfCsvFile, countOfReduceNode, endTime - startTime);
 
     }
 
@@ -94,7 +94,7 @@ public class ExecuteService {
 
     }
 
-    private Job setUpAggreateJob(int numOfCsvFile, int countOfReduceNode) throws IOException {
+    private Job setUpAggregateJobToSingleCSV(int numOfCsvFile, int countOfReduceNode) throws IOException {
 
         Job job = Job.getInstance(configuration, "Анализ продаж по категориям.");
         job.setJarByClass(Main.class);
@@ -119,7 +119,7 @@ public class ExecuteService {
     }
 
 
-    private void downloadResultsFromHDFS(int numOfCsvFile, int countOfReduceNode, long timeInMs) throws IOException {
+    private void downloadSingleResultsFromHDFS(int numOfCsvFile, int countOfReduceNode, long timeInMs) throws IOException {
 
         Path hdfsOutputPath = new Path("/output/sortResult");
 
@@ -177,6 +177,107 @@ public class ExecuteService {
         FileUtils.writeStringToFile(resultTimeFile, result, "UTF-8", true);
 
     }
+
+
+    public void executeAllCSVFile(int countOfReduceNode) throws IOException, InterruptedException, ClassNotFoundException {
+
+        deleteDirectories();
+
+        Job aggregate = setUpAggregateJobToAllCSV(countOfReduceNode);
+
+        long startTime = System.currentTimeMillis();
+
+        aggregate.waitForCompletion(true);
+
+        Job sort = setUpSortJob();
+        sort.waitForCompletion(true);
+
+        long endTime = System.currentTimeMillis();
+
+        downloadAllResultsFromHDFS(countOfReduceNode, endTime - startTime);
+
+    }
+
+    private void downloadAllResultsFromHDFS(int countOfReduceNode, long timeInMs) throws IOException {
+
+
+
+        Path hdfsOutputPath = new Path("/output/sortResult");
+
+        String localOutputDir = "results/allCSV/countOfReduceNode-" + countOfReduceNode;
+        File localDirFile = new File(localOutputDir);
+
+        if (!localDirFile.exists()) {
+            localDirFile.mkdirs();
+
+            FileStatus[] hdfsFiles = fileSystem.listStatus(hdfsOutputPath);
+
+            for (FileStatus fileStatus : hdfsFiles) {
+                if (!fileStatus.isDirectory()) {
+                    Path hdfsFilePath = fileStatus.getPath();
+                    String fileName = hdfsFilePath.getName();
+                    Path localFilePath = new Path(localDirFile.getPath(), fileName);
+
+                    fileSystem.copyToLocalFile(false, hdfsFilePath, localFilePath, true);
+                }
+            }
+
+        }
+
+
+
+        File resultTimeFile = new File(new File("results/allCSV"), "resultTimeFie.txt");
+        Path hdfsPathToAggregationResult = new Path("/output/aggregateResult");
+
+        Path localDirPathToAggregationResult = new Path("results/allCSV/countOfReduceNode-" + countOfReduceNode + "/aggregationResult");
+        File localFilePathToAggregationResult = new File(localDirPathToAggregationResult.toString());
+
+        if(!localFilePathToAggregationResult.exists()){
+            localFilePathToAggregationResult.mkdirs();
+        }
+
+        FileStatus[] hdfsFilesAggregationResult = fileSystem.listStatus(hdfsPathToAggregationResult);
+
+        for (FileStatus fileStatus : hdfsFilesAggregationResult) {
+            if (!fileStatus.isDirectory()) {
+                Path hdfsFilePath = fileStatus.getPath();
+                String fileName = hdfsFilePath.getName();
+                Path localFilePath = new Path(localDirPathToAggregationResult, fileName);
+
+                fileSystem.copyToLocalFile(false, hdfsFilePath, localFilePath, true);
+            }
+        }
+
+
+        String result = String.format("Count of reduce node = %d, time  = %.2f seconds. \n", countOfReduceNode, timeInMs / 1000.0);
+        FileUtils.writeStringToFile(resultTimeFile, result, "UTF-8", true);
+
+    }
+
+    public Job setUpAggregateJobToAllCSV(int countOfReduceNode) throws IOException {
+
+
+        Job job = Job.getInstance(configuration, "Анализ продаж по категориям.");
+        job.setJarByClass(Main.class);
+        job.setMapperClass(SalesMapper.class);
+        job.setReducerClass(SalesReducer.class);
+
+        job.setCombinerClass(SalesReducer.class);
+
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(SalesWritable.class);
+        job.setMapOutputKeyClass(Text.class);
+        job.setMapOutputValueClass(SalesWritable.class);
+
+        job.setNumReduceTasks(countOfReduceNode);
+
+        String pathToCsvFile = "/input";
+        FileInputFormat.addInputPath(job, new Path(pathToCsvFile));
+        FileOutputFormat.setOutputPath(job, new Path("/output/aggregateResult"));
+
+        return job;
+    }
+
 
 
 }

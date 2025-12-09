@@ -22,15 +22,23 @@ public class Main {
 
             ExecuteService executeService = new ExecuteService(configuration);
 
-            // здесь мы переберём все csv файлы и соберём статистику по масштабированию
+            // здесь мы переберём все csv файлы и соберём статистику по масштабированию для каждого csv
             for (int numOfCsvFile = 0; numOfCsvFile <= 7; numOfCsvFile++) {
 
                 for (int countOfReduceNode = 1; countOfReduceNode <= 20; countOfReduceNode++) {
 
-                    executeService.execute(numOfCsvFile, countOfReduceNode);
+                    executeService.executeCSVFile(numOfCsvFile, countOfReduceNode);
                 }
 
             }
+
+            // обработаем сразу все файлы
+            for (int countOfReduceNode = 1; countOfReduceNode <= 20; countOfReduceNode++) {
+
+                executeService.executeAllCSVFile(countOfReduceNode);
+
+            }
+
 
             executeService.closeFileSystem();
 
@@ -47,6 +55,7 @@ public class Main {
      */
     private static Configuration setUpConf() {
 
+        System.setProperty("java.library.path", "C:\\hadoop-3.3.6\\bin");
         Configuration configuration = new Configuration();
         configuration.set("fs.defaultFS", "hdfs://localhost:8020");
         configuration.set("dfs.client.use.datanode.hostname", "true");
