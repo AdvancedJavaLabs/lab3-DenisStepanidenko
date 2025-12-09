@@ -1,14 +1,20 @@
 package org.itmo.comparator;
 
 import org.apache.hadoop.io.DoubleWritable;
+import org.apache.hadoop.io.WritableComparable;
+import org.apache.hadoop.io.WritableComparator;
 
-public class DescendingComparator extends DoubleWritable.Comparator {
+public class DescendingComparator extends WritableComparator {
 
-    @Override
-    public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) {
-        return super.compare(b1, s1, l1, b2, s2, l2);
+    protected DescendingComparator(){
+        super(DoubleWritable.class,true);
     }
 
-
+    @Override
+    public int compare(WritableComparable w1, WritableComparable w2){
+        DoubleWritable key1 = (DoubleWritable) w1;
+        DoubleWritable key2 = (DoubleWritable) w2;
+        return -1 * key1.compareTo(key2);
+    }
 
 }
